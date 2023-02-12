@@ -1,5 +1,4 @@
-<script lang=ts>
-  import App from '../lib/App.svelte'
+<script lang="ts">
   import { createClient, gql, setContextClient, queryStore, getContextClient } from '@urql/svelte'
 
   const client = createClient({
@@ -8,7 +7,7 @@
 
   setContextClient(client)
 
-  const data = queryStore({
+  const noteStore = queryStore({
     client: getContextClient(),
     query: gql`
       query AllAppNotesQuery {
@@ -23,6 +22,7 @@
                     id
                     name
                     path
+                    nodeId
                   }
                 }
               }
@@ -33,8 +33,23 @@
     `,
   })
 
-  console.log(data)
+  //let edges: any
 
 </script>
 
-<App />
+<p>D14-N3</p>
+
+<ul>
+  {#if $noteStore.fetching} <li>Loading...</li>
+  {:else if $noteStore.error} <li>ERROR: {$noteStore.error.message}</li>
+
+  {:else}
+
+    {@const edges = $noteStore.data?.allAppNotes?.edges}
+    
+		{#each edges as edge (edge.node.id)}
+			<p>{edge.node.note}</p>
+		{/each}
+
+  {/if}
+</ul>
