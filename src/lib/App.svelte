@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { createClient, gql, setContextClient, queryStore, getContextClient } from '@urql/svelte'
+  import { onMount } from 'svelte'
+  import { createClient, gql, setContextClient, mutationStore, queryStore, getContextClient } from '@urql/svelte'
 
   const client = createClient({
     url: 'http://localhost:5000/graphql',
@@ -23,8 +24,13 @@
                     name
                     path
                     nodeId
+                    date
                   }
                 }
+              }
+              appUserByUserId {
+                username
+                nodeId
               }
             }
           }
@@ -33,23 +39,83 @@
     `,
   })
 
-  //let edges: any
+  let noteName = ''
+  let formSubmitted: boolean = false
+  
+  const createNote = (note: string) => {
+    mutationStore({
+      client: getContextClient(),
+      query: gql`
+        mutation MyMutation($note: String!) {
+          createAppNote(input: {appNote: {userId: 1, note: $note}}) {
+            appNote {
+              note
+            }
+          }
+        }
+      `,
+      variables: { note }
+    })
+    formSubmitted = false
+  }
+
+$: if (formSubmitted) {
+  createNote(noteName)
+}
+  
 
 </script>
 
-<p>D14-N3</p>
+<header>
+  <h1>Di-4N3</h1>
+</header>
 
-<ul>
-  {#if $noteStore.fetching} <li>Loading...</li>
-  {:else if $noteStore.error} <li>ERROR: {$noteStore.error.message}</li>
+<main>
 
-  {:else}
+  <ul>
+    {#if $noteStore.fetching} <li>Loading...</li>
+    {:else if $noteStore.error} <li>ERROR: {$noteStore.error.message}</li>
+    {:else}
+  
+      {@const edges = $noteStore.data?.allAppNotes?.edges}
+  
+      {#each edges as edge (edge.node.id)}
 
-    {@const edges = $noteStore.data?.allAppNotes?.edges}
-    
-		{#each edges as edge (edge.node.id)}
-			<p>{edge.node.note}</p>
-		{/each}
+        <li>
+          <h2>{edge.node.note} by {edge.node.appUserByUserId?.username}</h2>
 
-  {/if}
-</ul>
+            {#if edge.node.appRecordsByNotesId.edges}
+              {@const records = edge.node.appRecordsByNotesId.edges}
+              <ul>
+
+                {#each records as record (record.node.id) }
+                  <li>
+                    <h3>{record.node.name}</h3>
+                    <p>Recorded on: {record.node.date}</p>
+                    <p>Path: {record.node.path}</p>
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          
+        </li>
+      {/each}
+  
+    {/if}
+  </ul>
+
+  <form>
+    <input type="text" bind:value={noteName} placeholder="Enter your name" />
+    <button type="button" on:click={() => formSubmitted=true }>Submit</button>
+  </form>
+
+</main>
+
+<style>
+  main, header {
+    text-align: center;
+  }
+  ul {
+    list-style: none;
+  }
+</style>
