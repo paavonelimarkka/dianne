@@ -1,15 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { createClient, gql, setContextClient, mutationStore, queryStore, getContextClient } from '@urql/svelte'
+	import { KnownArgumentNamesRule } from 'graphql';
 
-  const client = createClient({
+  const GQLclient = createClient({
     url: 'http://localhost:5000/graphql',
   })
 
-  setContextClient(client)
+  //setContextClient(client)
+  
 
   const noteStore = queryStore({
-    client: getContextClient(),
+    client: GQLclient,
     query: gql`
       query AllAppNotesQuery {
         allAppNotes {
@@ -42,9 +44,10 @@
   let noteName = ''
   let formSubmitted: boolean = false
   
-  const createNote = (note: string) => {
+  
+  const createNote = (note: string, kala: any) => {
     mutationStore({
-      client: getContextClient(),
+      client: GQLclient,
       query: gql`
         mutation MyMutation($note: String!) {
           createAppNote(input: {appNote: {userId: 1, note: $note}}) {
