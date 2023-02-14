@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createClient, gql, setContextClient, mutationStore, queryStore } from '@urql/svelte'
+  import { createClient, gql, mutationStore, queryStore } from '@urql/svelte'
   import Note from './Note.svelte'
 
   const GQLClient = createClient({
@@ -65,14 +65,12 @@
 <main>
 
   <ul>
-
     {#if $noteStore.fetching} <li>Loading...</li>
     {:else if $noteStore.error} <li>ERROR: {$noteStore.error.message}</li>
     {:else}
 
       {@const edges = $noteStore.data?.allAppNotes?.edges}
       {#each edges as edge (edge.node.id)}
-      {@const id = edge.node.id}
 
         <li>
           <Note id={edge.node.id} />
@@ -80,7 +78,6 @@
 
       {/each}
     {/if}
-
   </ul>
 
   <form>

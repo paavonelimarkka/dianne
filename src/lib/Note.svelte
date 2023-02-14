@@ -1,44 +1,12 @@
 <script lang=ts>
-  import { createClient, gql, setContextClient, mutationStore, queryStore } from '@urql/svelte'
+  import { createClient, gql, mutationStore, queryStore } from '@urql/svelte'
+  import Record from './Record.svelte'
 
   const GQLClient = createClient({
     url: 'http://localhost:5000/graphql',
   })
 
   export let id
-
-  /*
-  const noteStore = queryStore({
-    client: GQLClient,
-    query: gql`
-      query AllAppNotesQuery {
-        appNoteById {
-          edges {
-            node {
-              id
-              note
-              appRecordsByNotesId {
-                edges {
-                  node {
-                    id
-                    name
-                    path
-                    nodeId
-                    date
-                  }
-                }
-              }
-              appUserByUserId {
-                username
-                nodeId
-              }
-            }
-          }
-        }
-      }
-    `,
-  })
-  */
 
   const appNote = queryStore({
     client: GQLClient,
@@ -84,8 +52,6 @@
     })
   }
 
-  console.log('tänne noten puolelle tuleva id ois: ', id)
-
 </script>
 
 
@@ -105,15 +71,12 @@
     {@const records = note.appRecordsByNotesId.edges}
       
       <ul>
-
         {#each records as record (record.node.id) }
-          <li>
-            <h3>{record.node.name}</h3>
-            <p>Recorded on: {record.node.date}</p>
-            <p>Path: {record.node.path}</p>
-          </li>
+          {@const appRecord = record.node}
+          <Record appRecord={appRecord} />
         {/each}
       </ul>
+
     {/if}
 
     <form>
@@ -128,6 +91,6 @@
 
 <style>
   .note {
-    background-color: cadetblue;
+    background-color: darkgrey;
   }
 </style>
